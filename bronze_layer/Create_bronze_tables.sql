@@ -1,3 +1,27 @@
+/*
+===============================================================================
+Stored Procedure: Load Bronze Layer (Source -> Bronze)
+===============================================================================
+Script Purpose:
+    This stored procedure loads data into the 'bronze' schema from external CSV files. 
+    It performs the following actions:
+    - Truncates the bronze tables before loading data.
+    - Uses the `BULK INSERT` command to load data from csv Files to bronze tables.
+
+Parameters:
+    None. 
+	  This stored procedure does not accept any parameters or return any values.
+
+Usage Example:
+    EXEC bronze.load_bronze;
+===============================================================================
+*/
+
+-- =============================================================================
+-- Creat bronze.crm_cust_info
+-- =============================================================================
+
+
 if OBJECT_ID('bronze.crm_cust_info', 'U') is not null
 	drop table bronze.crm_cust_info;
 go
@@ -15,6 +39,9 @@ create table bronze.crm_cust_info(
 go
 
 
+-- =============================================================================
+-- Creat bronze.crm_prd_info
+-- =============================================================================
 
 
 if OBJECT_ID('bronze.crm_prd_info','U') is not null
@@ -33,6 +60,9 @@ create table bronze.crm_prd_info(
 );
 go
 
+-- =============================================================================
+-- Creat bronze.crm_sales_details
+-- =============================================================================
 
 
 if OBJECT_ID('bronze.crm_sales_details','U') is not null
@@ -52,6 +82,9 @@ create table bronze.crm_sales_details(
 );
 go
 
+-- =============================================================================
+-- Creat bronze.erp_cust_az12
+-- =============================================================================
 
 
 if object_id('bronze.erp_cust_az12', 'U') is not null
@@ -67,6 +100,9 @@ go
 
 
 
+-- =============================================================================
+-- Creat bronze.erp_loc_a101
+-- =============================================================================
 
 
 if object_id('bronze.erp_loc_a101', 'U') is  not null
@@ -80,6 +116,9 @@ create table bronze.erp_loc_a101(
 go
 
 
+-- =============================================================================
+-- Creat silver. bronze.erp_cat_g1v2
+-- =============================================================================
 
 
 if object_id('bronze.erp_cat_g1v2','U') is not null
