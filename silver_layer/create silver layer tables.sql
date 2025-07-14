@@ -1,105 +1,99 @@
+if OBJECT_ID('silver.crm_cust_info', 'U') is not null
+	drop table silver.crm_cust_info;
+go
 
-/*
-===============================================================================
-DDL Script: Create Gold Views
-===============================================================================
-Script Purpose:
-    This script creates views for the Gold layer in the data warehouse. 
-    The Gold layer represents the final dimension and fact tables (Star Schema)
-
-    Each view performs transformations and combines data from the Silver layer 
-    to produce a clean, enriched, and business-ready dataset.
-
-Usage:
-    - These views can be queried directly for analytics and reporting.
-===============================================================================
-*/
-
--- =============================================================================
--- Create Dimension: gold.dim_customers
--- =============================================================================
-
-
-if OBJECT_ID('gold.dim_customer','U') is not null
-	drop view gold.dim_customer;
-	go
-
-create or alter view gold.dim_customer as
-select 
-		row_number() over (order by cst_id) as customer_number,
-		cst_id as customer_id,
-		cst_key as customer_key,
-		cst_firstname as first_name,
-		cst_lastname as last_name,
-		case
-			when ci.cst_gndr = 'n/a' then ca.gen
-			else ci.cst_gndr
-			end gender,
-		ca.bdate as birth_date,
-		lo.cntry as country
-		
-from 
-	silver.crm_cust_info ci
-left join
-	silver.erp_cust_az12 ca
-on ci.cst_key = ca.cid
-left join
-	silver.erp_loc_a101 lo
-on ci.cst_key = lo.cid;
-
+create table silver.crm_cust_info(
+	cst_id int,
+	cst_key nvarchar(50),
+	cst_firstname varchar(50),
+	cst_lastname varchar(50),
+	cst_marital_status varchar(50),
+	cst_gndr varchar(50),
+	cst_create_date date,
+	
+);
 go
 
 
--- =============================================================================
--- Create Dimension: gold.dim_products
--- =============================================================================
 
 
-if OBJECT_ID('gold.dim_products', 'V') is not null
-	drop view gold.dim_products;
-go
-create or alter view  gold.dim_products as
-select
-	row_number() over (order by prd_id, prd_start_dt) as product_number,
-	prd_id as product_id,
-	prd_key as product_key,
-	prd_nm as product_name,
-	prd_line as product_line,
-	prd_cost as cost,
-	cg.cat category,
-	cg.subcat  as sub_category,
-	prd_start_dt as product_start_date,
-	cg.maintenance
-from
-	silver.crm_prd_info pi
-left join 
-	silver.erp_cat_g1v2 cg
-on pi.cat_id = cg.id
-where prd_end_dt is null;
-
+if OBJECT_ID('silver.crm_prd_info','U') is not null
+	drop table silver.crm_prd_info;
 go
 
--- =============================================================================
--- Create Facts: facts_sales
--- =============================================================================
-if OBJECT_ID('gold.fact_sales', 'V') is not null
-	drop view gold.fact_sales
+
+create table silver.crm_prd_info(
+	prd_id int,
+	cat_id varchar(50),
+	prd_key nvarchar(50),
+	prd_nm nvarchar(50),
+	prd_cost int,
+	prd_line varchar(50),
+	prd_start_dt date,
+	prd_end_dt date
+);
 go
-create or alter view gold.fact_sales as 
-select
-	sls_ord_num as order_id,
-	dc.customer_number,
-	dp.product_number,
-	sls_order_dt as order_date,
-	sls_ship_dt as shipping_date,
-	sls_due_dt as due_date,
-	sls_sales as sales,
-	sls_quantity as quantity,
-	sls_price as price
-from silver.crm_sales_details sd
-left join gold.dim_customer dc
-on sd.sls_cust_id = dc.customer_id 
-left join gold.dim_products dp
-on sd.sls_prd_key = dp.product_key ;
+
+
+
+if OBJECT_ID('silver.crm_sales_details','U') is not null
+	drop table silver.crm_sales_details;
+go
+
+create table silver.crm_sales_details(
+	sls_ord_num nvarchar(50),
+	sls_prd_key nvarchar(50),
+	sls_cust_id int,
+	sls_order_dt date,
+	sls_ship_dt date,
+	sls_due_dt date,
+	sls_sales int,
+	sls_quantity int,
+	sls_price int
+);
+go
+
+
+
+if object_id('silver.erp_cust_az12', 'U') is not null
+	drop table silver.erp_cust_az12;
+go
+
+create table silver.erp_cust_az12(
+	cid nvarchar(50),
+	bdate date,
+	gen varchar(50)
+);
+go
+
+
+
+
+
+if object_id('silver.erp_loc_a101', 'U') is  not null
+	drop table silver.erp_loc_a101;
+go
+
+create table silver.erp_loc_a101(
+	cid nvarchar(50),
+	cntry varchar(50),
+);
+go
+
+
+
+
+if object_id('silver.erp_cat_g1v2','U') is not null
+	drop table silver.erp_cat_g1v2;
+go
+create table silver.erp_cat_g1v2(
+	id varchar(50),
+	cat varchar(50),
+	subcat varchar(50),
+	maintenance varchar(50)
+);
+go
+
+
 
 
